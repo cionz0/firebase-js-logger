@@ -30,12 +30,12 @@ function createLogger(newPrefix = '') {
          * @type {winston.Format}
          */
         format: winston.format.combine(
-            winston.format.label({ label: '[MyApp]' }),
+            // winston.format.label({ label: '[MyApp]' }),
             winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
             winston.format.errors({ stack: true }),
             winston.format.splat(),
             winston.format.printf(({ level, message, label, timestamp, stack }) => {
-                let log = `${timestamp} [${label}] ${level}: ${message}`;
+                let log = `${timestamp} [${level.toUpperCase()}]: ${message}`;
                 if (stack) {
                     log += `\n${stack}`;
                 }
@@ -92,13 +92,14 @@ function createLogger(newPrefix = '') {
      * Logs a message with optional stack trace and additional arguments.
      * @private
      * @param {string} level - The log level ('info', 'warn', or 'error').
-     * @param {string} message - The message to log.
+     * @param {any} message - The message to log.
      * @param {boolean} includeStack - Whether to include the stack trace in the log message.
      * @param {...any} args - Additional arguments to include in the log message.
      */
     const customLog = (level, message, includeStack = false, ...args) => {
         const fileAndLine = formatWithFileAndLine();
-        let logMessage = `${fileAndLine} - ${message}`;
+        const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
+        let logMessage = `${fileAndLine} - ${messageStr}`;
         if (includeStack) {
             const stackTrace = new Error().stack;
             logMessage += `\n${stackTrace}`;

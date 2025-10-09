@@ -1,7 +1,7 @@
 {
   "name": "@cionzo/firebase-js-logger",
-  "version": "1.0.0",
-  "description": "My firebase logger utility",
+  "version": "1.2.0",
+  "description": "A Winston-based logger with automatic file and line number tracking for Node.js applications",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,9 +11,28 @@
     "url": "git+https://github.com/cionz0/firebase-js-logger.git"
   },
   "keywords": [
-    "logging",
     "logger",
-    "configuration"
+    "logging",
+    "winston",
+    "console",
+    "log",
+    "debug",
+    "debugging",
+    "firebase",
+    "nodejs",
+    "node",
+    "stack-trace",
+    "line-number",
+    "file-tracking",
+    "source-tracking",
+    "error-logging",
+    "info",
+    "warn",
+    "error",
+    "timestamp",
+    "formatted-logging",
+    "cloud-logging",
+    "google-cloud"
   ],
   "author": "cionzo <cionzoh@gmail.com>",
   "license": "GPL-3.0",
@@ -21,8 +40,10 @@
     "url": "https://github.com/cionz0/firebase-js-logger/issues"
   },
   "homepage": "https://github.com/cionz0/firebase-js-logger#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "dependencies": {
-    "@google-cloud/logging-winston": "^6.0.0",
-    "winston": "^3.13.0"
+    "winston": "^3.18.3"
   }
 }
