@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D12.0.0-brightgreen)](https://nodejs.org)
-[![Version](https://img.shields.io/badge/version-1.1.0-orange)](https://github.com/cionz0/firebase-js-logger)
+[![Version](https://img.shields.io/badge/version-1.2.0-orange)](https://github.com/cionz0/firebase-js-logger)
 
 A Winston-based logger with automatic file and line number tracking, designed for Node.js applications. This logger provides clean, formatted console output with timestamps, log levels, and source code location information.
 
