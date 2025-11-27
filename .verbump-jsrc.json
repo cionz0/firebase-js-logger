@@ -1,0 +1,12 @@
+{
+  "changelogFile": "CHANGELOG.md",
+  "generateChangelogFromCommits": true,
+  "updateVersionReferences": true,
+  "versionUpdateFiles": [
+    "README.md",
+    "CHANGELOG.md",
+    "*.md",
+    "src/**/*.js",
+    "bin/**/*.js"
+  ]
+}

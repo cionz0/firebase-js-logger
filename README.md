@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D12.0.0-brightgreen)](https://nodejs.org)
-[![Version](https://img.shields.io/badge/version-1.2.0-orange)](https://github.com/cionz0/firebase-js-logger)
+[![Version](https://img.shields.io/badge/version-2.0.0-orange)](https://github.com/cionz0/firebase-js-logger)
 
 A Winston-based logger with automatic file and line number tracking, designed for Node.js applications. This logger provides clean, formatted console output with timestamps, log levels, and source code location information.
 
@@ -11,6 +11,7 @@ A Winston-based logger with automatic file and line number tracking, designed fo
 - [Why Use This Logger?](#why-use-this-logger)
 - [Features](#features)
 - [Installation](#installation)
+- [Migration Guide (v1.x → v2.0)](#migration-guide-v1x--v20)
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
 - [Output Format](#output-format)
@@ -28,7 +29,8 @@ Traditional console logging makes it hard to track down where messages originate
 - 🧹 **Clean, consistent formatting** - Professional output across your entire application
 - 🔍 **Full stack traces on demand** - Debug errors faster with detailed context
 - 📦 **Zero configuration** - Works out of the box with sensible defaults
-- 🚀 **Production ready** - Built on battle-tested Winston with Firebase/Google Cloud integration
+- 🚀 **Production ready** - Built on battle-tested Winston logging library
+- 🎯 **Singleton pattern** - Single logger instance across your entire application ensures consistent configuration and reduces overhead
 
 **Before:**
 ```
@@ -51,7 +53,7 @@ Error: Database connection failed
 - ✅ **Flexible message types**: Supports strings and automatically stringifies objects, arrays, and other types
 - ✅ **Timestamp formatting**: ISO-style timestamps (YYYY-MM-DD HH:mm:ss)
 - ✅ **Built on Winston**: Leverages the powerful Winston logging library
-- ✅ **Firebase/Google Cloud ready**: Includes Google Cloud Logging integration
+- ✅ **Singleton pattern**: Single logger instance ensures consistent configuration across all modules with minimal overhead
 
 ## Installation
 
@@ -59,14 +61,156 @@ Error: Database connection failed
 npm install --save git+https://github.com/cionz0/firebase-js-logger.git
 ```
 
+## Migration Guide (v1.x → v2.0)
+
+Version 2.0.0 introduces breaking changes with a new singleton pattern API. Follow this guide to migrate from v1.x to v2.0.
+
+### Breaking Changes
+
+1. **Module Export Changed**: The module now exports a function directly instead of an object
+2. **`setPrefix()` Moved**: Now a method on the logger object instead of a module-level export
+3. **Singleton Pattern**: Logger is now a singleton - all calls return the same instance
+
+### Migration Steps
+
+#### 1. Update Module Import
+
+**Before (v1.x):**
+```javascript
+const { createLogger } = require("@cionzo/firebase-js-logger");
+const logger = createLogger(__dirname);
+```
+
+**After (v2.0):**
+```javascript
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+```
+
+Or use auto-detection:
+```javascript
+const logger = require("@cionzo/firebase-js-logger")(null);
+```
+
+#### 2. Update `setPrefix()` Usage
+
+**Before (v1.x):**
+```javascript
+const { createLogger, setPrefix } = require("@cionzo/firebase-js-logger");
+const logger = createLogger(__dirname);
+
+// Later...
+setPrefix('/new/path');
+```
+
+**After (v2.0):**
+```javascript
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+
+// Later...
+logger.setPrefix('/new/path');
+```
+
+#### 3. Update Multiple Module Usage
+
+**Before (v1.x):**
+```javascript
+// app.js
+const { createLogger } = require("@cionzo/firebase-js-logger");
+const logger = createLogger(__dirname);
+
+// services/database.js
+const { createLogger } = require("@cionzo/firebase-js-logger");
+const logger = createLogger(); // Creates new instance
+```
+
+**After (v2.0):**
+```javascript
+// app.js
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+
+// services/database.js
+const logger = require("@cionzo/firebase-js-logger")(); // Returns same singleton instance
+```
+
+#### 4. Update Test Code
+
+**Before (v1.x):**
+```javascript
+const { createLogger } = require("@cionzo/firebase-js-logger");
+// Each test creates its own logger
+const logger = createLogger(__dirname);
+```
+
+**After (v2.0):**
+```javascript
+const getLogger = require("@cionzo/firebase-js-logger");
+const logger = getLogger(__dirname);
+
+// Use reset() between tests if needed
+beforeEach(() => {
+    logger.reset();
+});
+```
+
+### Complete Migration Example
+
+**Before (v1.x):**
+```javascript
+// app.js
+const { createLogger, setPrefix } = require("@cionzo/firebase-js-logger");
+const logger = createLogger(__dirname);
+logger.info("App started");
+
+// services/database.js
+const { createLogger } = require("@cionzo/firebase-js-logger");
+const logger = createLogger();
+logger.info("Database connected");
+
+// config.js
+const { setPrefix } = require("@cionzo/firebase-js-logger");
+setPrefix('/new/path');
+```
+
+**After (v2.0):**
+```javascript
+// app.js
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+logger.info("App started");
+
+// services/database.js
+const logger = require("@cionzo/firebase-js-logger")();
+logger.info("Database connected");
+
+// config.js
+const logger = require("@cionzo/firebase-js-logger")();
+logger.setPrefix('/new/path');
+```
+
+### Benefits of v2.0
+
+- **Simpler API**: Direct function call instead of destructuring
+- **Auto-detection**: Pass `null` to automatically detect caller's `__dirname`
+- **Consistent State**: Singleton ensures all modules share the same logger configuration
+- **Better Encapsulation**: `setPrefix()` is now a method on the logger object
+
+### Need Help?
+
+If you encounter issues during migration:
+1. Check the [Troubleshooting](#troubleshooting) section
+2. Review the [API Reference](#api-reference) for the new API
+3. Open an issue on [GitHub](https://github.com/cionz0/firebase-js-logger/issues)
+
 ## Quick Start
 
-**1. Create logger in your main file:**
+**1. Initialize logger in your main file:**
 
 ```javascript
 // app.js or index.js
-const { createLogger } = require("@cionzo/firebase-js-logger");
-const logger = createLogger(__dirname);
+// Option 1: Auto-detect __dirname (recommended)
+const logger = require("@cionzo/firebase-js-logger")(null);
+
+// Option 2: Explicitly pass __dirname
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
 
 logger.info("Application starting...");
 ```
@@ -75,52 +219,62 @@ logger.info("Application starting...");
 
 ```javascript
 // services/database.js
-const { createLogger } = require("@cionzo/firebase-js-logger");
-const logger = createLogger();
+const logger = require("@cionzo/firebase-js-logger")();
 
 logger.info("Connecting to database...");
 logger.warn("Connection pool at 80% capacity");
 logger.error("Failed to execute query", true); // with stack trace
 ```
 
-That's it! The logger automatically tracks which file and line number each message comes from.
+That's it! The logger automatically tracks which file and line number each message comes from. 
+
+**Note:** All calls to `require("@cionzo/firebase-js-logger")()` return the same singleton instance. The prefix parameter is only used on the first call:
+- Pass `null` to auto-detect the caller's `__dirname`
+- Pass a string (or `__dirname`) to set a specific prefix
+- Pass `''` (empty string) to disable prefix removal
+
+Subsequent calls return the existing instance regardless of the parameter passed.
 
 ## API Reference
 
-### `createLogger([prefix])`
+### Module Export
 
-Creates a new logger instance.
+The module exports a function that returns the singleton logger instance.
+
+**Usage:**
+```javascript
+const logger = require("@cionzo/firebase-js-logger")([prefix]);
+```
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `prefix` | `string` | No | Path prefix to remove from filenames in log output (typically `__dirname`) |
+| `prefix` | `string \| null` | No | Path prefix to remove from filenames in log output. If `null`, automatically uses the caller's module `__dirname`. If a non-null string (including empty string), that value is used. Only used on the first call; ignored on subsequent calls. |
 
-**Returns:** Logger instance with `info`, `warn`, and `error` methods.
+**Returns:** The singleton logger instance with methods: `info`, `warn`, `error`, `setPrefix`, and `reset`.
 
-**Example:**
+**Important:** This logger follows the singleton pattern. The first call initializes the logger with the optional prefix. All subsequent calls return the same instance, and any prefix parameter is ignored.
+
+**Examples:**
 ```javascript
-const logger = createLogger(__dirname);
+// First call - initializes singleton with explicit prefix
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+
+// First call - auto-detect caller's __dirname when prefix is null
+const logger = require("@cionzo/firebase-js-logger")(null);
+
+// First call - empty string prefix (no prefix removal)
+const logger = require("@cionzo/firebase-js-logger")('');
+
+// Subsequent calls - returns same instance (prefix ignored)
+const logger2 = require("@cionzo/firebase-js-logger")('/other/path');
+// logger === logger2 (same instance)
 ```
 
 ---
 
-### `setPrefix(newPrefix)`
+### Logger Object
 
-Updates the global prefix for filename formatting (useful for changing prefix after initialization).
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `newPrefix` | `string` | Yes | The prefix to exclude from filenames |
-
-**Example:**
-```javascript
-const { setPrefix } = require("@cionzo/firebase-js-logger");
-setPrefix('/Users/username/projects/myapp');
-```
-
----
-
-### Logger Methods
+The logger object returned by the module function provides the following methods:
 
 #### `logger.info(message, ...args)`
 
@@ -181,6 +335,44 @@ logger.error({ code: "ERR_DB", details: "Connection timeout" });
 logger.error("Processing failed", true, { userId: 123 });
 ```
 
+---
+
+#### `logger.setPrefix(newPrefix)`
+
+Updates the prefix for filename formatting. This can be called at any time to change how file paths are displayed in logs.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `newPrefix` | `string` | Yes | The prefix to exclude from filenames in log output |
+
+**Example:**
+```javascript
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+
+// Change prefix later if needed
+logger.setPrefix('/Users/username/projects/myapp');
+```
+
+---
+
+#### `logger.reset()`
+
+Resets the logger singleton. Primarily useful for testing purposes. After calling this, the next call to get the logger will create a fresh instance with a clean state.
+
+**Note:** This method should generally only be used in test environments. In production code, the singleton pattern ensures a single, consistent logger instance throughout the application lifecycle.
+
+**Example:**
+```javascript
+// In tests
+const getLogger = require("@cionzo/firebase-js-logger");
+const logger = getLogger(__dirname);
+
+// ... test code ...
+
+logger.reset(); // Reset singleton for next test
+const freshLogger = getLogger(__dirname); // Creates new instance
+```
+
 ## Output Format
 
 Log messages are formatted as:
@@ -207,8 +399,7 @@ Error
 ### Basic Logging
 
 ```javascript
-const { createLogger } = require("@cionzo/firebase-js-logger");
-const logger = createLogger(__dirname);
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
 
 logger.info("Application initialized");
 logger.warn("Configuration file not found, using defaults");
@@ -271,10 +462,12 @@ if (!criticalResource) {
 
 ### Multi-Module Application
 
+The singleton pattern ensures all modules share the same logger instance:
+
 **app.js (main entry point):**
 ```javascript
-const { createLogger } = require("@cionzo/firebase-js-logger");
-const logger = createLogger(__dirname);
+// Initialize singleton with prefix on first call
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
 
 logger.info("Starting application...");
 
@@ -288,8 +481,8 @@ logger.info("All services initialized");
 
 **services/database.js:**
 ```javascript
-const { createLogger } = require("@cionzo/firebase-js-logger");
-const logger = createLogger();
+// Returns the same singleton instance (prefix parameter ignored)
+const logger = require("@cionzo/firebase-js-logger")();
 
 async function connect() {
     logger.info("Connecting to database...");
@@ -305,8 +498,8 @@ async function connect() {
 
 **api/server.js:**
 ```javascript
-const { createLogger } = require("@cionzo/firebase-js-logger");
-const logger = createLogger();
+// Same singleton instance - consistent configuration across all modules
+const logger = require("@cionzo/firebase-js-logger")();
 
 app.listen(3000, () => {
     logger.info("Server listening on port 3000");
@@ -345,14 +538,31 @@ logger.warn({
 
 ### 1. Initialize Logger Once in Main File
 
+The singleton pattern means you should initialize the logger once in your main application file:
+
 ```javascript
-// ✅ Good - Initialize in main file with __dirname
-const logger = createLogger(__dirname);
+// ✅ Good - Initialize singleton in main file with __dirname
+// This sets the prefix for all subsequent logs
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
 ```
 
 ```javascript
-// ❌ Avoid - Don't pass __dirname in every module
-// Each module should just call createLogger() without arguments
+// ✅ Good - Other modules get the same singleton instance
+// The prefix parameter is ignored since logger is already initialized
+const logger = require("@cionzo/firebase-js-logger")();
+```
+
+```javascript
+// ❌ Avoid - Don't pass prefix in every module (it's ignored anyway)
+// The prefix only takes effect on the very first call
+const logger = require("@cionzo/firebase-js-logger")(__dirname); // prefix ignored
+```
+
+**Tip:** Store the logger in a variable if you need to access methods like `setPrefix()` or `reset()`:
+```javascript
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+// Later, if needed:
+logger.setPrefix('/new/path');
 ```
 
 ### 2. Use Appropriate Log Levels
@@ -412,9 +622,15 @@ logger.info({ user: user, password: "secret123" });
 
 **Problem:** Logs show `/Users/username/project/src/app.js` instead of `/src/app.js`
 
-**Solution:** Make sure to initialize the logger with `__dirname` in your main file:
+**Solution:** Make sure to initialize the logger singleton with `__dirname` in your main file (first call only):
 ```javascript
-const logger = createLogger(__dirname);
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+```
+
+Or update the prefix later:
+```javascript
+const logger = require("@cionzo/firebase-js-logger")();
+logger.setPrefix(__dirname);
 ```
 
 ---
@@ -437,6 +653,40 @@ logger.error("Error message", true);
 **Solution:** Ensure the package is installed correctly:
 ```bash
 npm install --save git+https://github.com/cionz0/firebase-js-logger.git
+```
+
+---
+
+### Different logger instances in different modules
+
+**Problem:** Expected singleton behavior but getting different instances
+
+**Solution:** Make sure you're calling the module function correctly. The module exports a function that must be invoked:
+```javascript
+// ✅ Correct - function is called, returns singleton instance
+const logger = require("@cionzo/firebase-js-logger")();
+
+// ❌ Incorrect - function is not called, returns the function itself
+const logger = require("@cionzo/firebase-js-logger");
+```
+
+---
+
+### Prefix not being applied
+
+**Problem:** Prefix passed on subsequent calls doesn't take effect
+
+**Solution:** The prefix is only used on the first call. If you need to change the prefix later, use the `setPrefix()` method:
+```javascript
+// First call - prefix is set
+const logger = require("@cionzo/firebase-js-logger")(__dirname);
+
+// Later, change prefix
+logger.setPrefix('/new/path');
+
+// Or if logger was already initialized without prefix:
+const logger = require("@cionzo/firebase-js-logger")();
+logger.setPrefix(__dirname); // Set prefix after initialization
 ```
 
 ---
@@ -467,8 +717,14 @@ cd firebase-js-logger
 # Install dependencies
 npm install
 
-# Make your changes and test
-node examples/test.js
+# Run tests
+npm test
+
+# Run integration tests
+npm run test:integration
+
+# Run all tests
+npm run test:all
 ```
 
 ## License

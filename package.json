@@ -1,10 +1,19 @@
 {
   "name": "@cionzo/firebase-js-logger",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "A Winston-based logger with automatic file and line number tracking for Node.js applications",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/index.test.js",
+    "test:integration": "node test/integration.test.js",
+    "test:all": "npm run test && npm run test:integration",
+    "bump:patch": "verbump-js patch --generate-changelog",
+    "bump:minor": "verbump-js minor --generate-changelog",
+    "bump:major": "verbump-js major --generate-changelog",
+    "bump:patch:push": "verbump-js patch --generate-changelog --push",
+    "bump:minor:push": "verbump-js minor --generate-changelog --push",
+    "bump:major:push": "verbump-js major --generate-changelog --push",
+    "changelog": "verbump-js changelog --generate-changelog"
   },
   "repository": {
     "type": "git",
@@ -45,5 +54,8 @@
   },
   "dependencies": {
     "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "@cionz0/verbump-js": "github:cionz0/verbump-js"
   }
 }
